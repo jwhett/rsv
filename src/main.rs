@@ -43,6 +43,10 @@ impl CSV {
             rows: hm_rows,
         }
     }
+
+    fn kv_in(&self, key: &str, value: &str) -> Vec<&HashMap<String, String>> {
+        self.rows.iter().filter(|hm| hm.get(key) == Some(&String::from(value))).collect()
+    }
 }
 
 fn main() {
@@ -52,4 +56,5 @@ fn main() {
     let csv = CSV::new_from_file(filename);
 
     println!("{:#?}", csv);
+
 }
