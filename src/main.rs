@@ -1,10 +1,10 @@
 use std::env;
 use std::fs;
-//use std::collections::HashMap;
+use std::collections::HashMap;
 
 struct CSV {
     headers: Vec<String>,
-    rows: Vec<Vec<String>>,
+    rows: Vec<HashMap<String, String>>,
 }
 
 impl CSV {
@@ -31,9 +31,19 @@ impl CSV {
             }
             rows.push(row);
         }
+
+        let mut hm_rows: Vec<HashMap<String, String>> = Vec::new();
+        for row in rows {
+            let mut hm: HashMap<String, String> = HashMap::new();
+            for (k, v) in headers.iter().zip(row) {
+                hm.insert(String::from(k), String::from(v));
+            }
+            hm_rows.push(hm);
+        }
+
         CSV {
             headers: headers,
-            rows: rows
+            rows: hm_rows,
         }
     }
 }
@@ -41,11 +51,7 @@ impl CSV {
 impl CSV {
     fn print(&self) {
         for row in &self.rows {
-            println!("{{");
-            for (h, r) in self.headers.iter().zip(row) {
-                println!("  {}: {},", h, r);
-            }
-            println!("}}");
+            println!("{:?}", row);
         }
     }
 }
