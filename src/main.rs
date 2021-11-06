@@ -1,12 +1,44 @@
 use std::env;
 use std::fs;
+//use std::collections::HashMap;
 
-struct CSV<'a, 'b> {
-    headers: Vec<&'a str>,
-    rows: Vec<Vec<&'b str>>,
+struct CSV {
+    headers: Vec<String>,
+    rows: Vec<Vec<String>>,
 }
 
-impl<'a, 'b> CSV<'a, 'b> {
+impl CSV {
+    fn new_from_file(filename: String) -> CSV {
+        let contents = fs::read_to_string(filename).expect("Something went wrong reading the file");
+        let mut lines = contents.lines();
+
+        let mut headers: Vec<String> = Vec::new();
+        for header in lines
+            .next()
+            .unwrap()
+            .split(",")
+        {
+            // Taking ownership
+            headers.push(String::from(header));
+        }
+
+        let mut rows: Vec<Vec<String>> = Vec::new();
+        for line in lines {
+            let mut row: Vec<String> = Vec::new();
+            for item in line.split(",") {
+                // Taking ownership
+                row.push(String::from(item));
+            }
+            rows.push(row);
+        }
+        CSV {
+            headers: headers,
+            rows: rows
+        }
+    }
+}
+
+impl CSV {
     fn print(&self) {
         for row in &self.rows {
             println!("{{");
@@ -20,27 +52,9 @@ impl<'a, 'b> CSV<'a, 'b> {
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let filename = &args[1];
+    let filename = String::from(&args[1]);
 
-    let contents = fs::read_to_string(filename).expect("Something went wrong reading the file");
-    let mut lines = contents.lines();
-
-    let headers: Vec<&str> = lines
-        .next()
-        .unwrap()
-        .split(",")
-        .collect();
-
-    let mut rows: Vec<Vec<&str>> = Vec::new();
-    for line in lines {
-        let row: Vec<&str> = line.split(",").collect();
-        rows.push(row);
-    }
-
-    let csv = CSV {
-        headers: headers,
-        rows: rows,
-    };
+    let csv = CSV::new_from_file(filename);
 
     csv.print();
 }
