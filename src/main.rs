@@ -1,7 +1,8 @@
+use std::collections::HashMap;
 use std::env;
 use std::fs;
-use std::collections::HashMap;
 
+#[derive(Debug)]
 struct CSV {
     headers: Vec<String>,
     rows: Vec<HashMap<String, String>>,
@@ -13,11 +14,7 @@ impl CSV {
         let mut lines = contents.lines();
 
         let mut headers: Vec<String> = Vec::new();
-        for header in lines
-            .next()
-            .unwrap()
-            .split(",")
-        {
+        for header in lines.next().unwrap().split(",") {
             // Taking ownership
             headers.push(String::from(header));
         }
@@ -48,19 +45,11 @@ impl CSV {
     }
 }
 
-impl CSV {
-    fn print(&self) {
-        for row in &self.rows {
-            println!("{:?}", row);
-        }
-    }
-}
-
 fn main() {
     let args: Vec<String> = env::args().collect();
     let filename = String::from(&args[1]);
 
     let csv = CSV::new_from_file(filename);
 
-    csv.print();
+    println!("{:#?}", csv);
 }
