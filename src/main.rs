@@ -1,8 +1,24 @@
 use std::env;
 use std::fs;
 
-fn main() {
+struct CSV<'a, 'b> {
+    headers: Vec<&'a str>,
+    rows: Vec<Vec<&'b str>>,
+}
 
+impl<'a, 'b> CSV<'a, 'b> {
+    fn print(&self) {
+        for row in &self.rows {
+            println!("{{");
+            for (h, r) in self.headers.iter().zip(row) {
+                println!("  {}: {},", h, r);
+            }
+            println!("}}");
+        }
+    }
+}
+
+fn main() {
     let args: Vec<String> = env::args().collect();
     let filename = &args[1];
 
@@ -14,12 +30,17 @@ fn main() {
         .unwrap()
         .split(",")
         .collect();
-    println!("headers: {:?}", headers);
 
     let mut rows: Vec<Vec<&str>> = Vec::new();
     for line in lines {
         let row: Vec<&str> = line.split(",").collect();
         rows.push(row);
     }
-    println!("rows: {:?}", rows);
+
+    let csv = CSV {
+        headers: headers,
+        rows: rows,
+    };
+
+    csv.print();
 }
