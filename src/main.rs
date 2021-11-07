@@ -60,3 +60,32 @@ fn main() {
 
     println!("{:#?}", csv);
 }
+
+
+#[cfg(test)]
+mod tests {
+    extern crate tempdir;
+
+    use std::fs::File;
+    use std::io::prelude::*;
+    use tempdir::TempDir;
+    use super::*;
+
+    #[test]
+    fn new_csv_from_file() {
+        let filename = String::from("test.csv");
+        let file_content = b"id,first_name,last_name
+        0,jane,doe
+        1,john,doe";
+        let dir = TempDir::new("testdir").unwrap();
+        let file_path = dir.path().join(&filename);
+    
+        let mut f = File::create(&file_path).unwrap();
+        f.write_all(file_content).expect("Could not write to test file");
+        f.sync_all().expect("Could not sync during test");
+
+        let csv = CSV::new_from_file(String::from(file_path.to_str().unwrap()));
+        assert_eq!(csv.headers, ["id","first_name","last_name"]);
+        dir.close().expect("Failed to close test dir");
+    }
+}
