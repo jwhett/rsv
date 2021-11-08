@@ -44,11 +44,16 @@ impl CSV {
         }
     }
 
-    fn kv_in(&self, key: &str, value: &str) -> Vec<&HashMap<String, String>> {
-        self.rows
+    fn kv_in(&self, key: &str, value: &str) -> Option<Vec<&HashMap<String, String>>> {
+        let res: Vec<&HashMap<String, String>> = self.rows
             .iter()
             .filter(|hm| hm.get(key) == Some(&String::from(value)))
-            .collect()
+            .collect();
+        if res.len() == 0 {
+            None
+        } else {
+            Some(res)
+        }
     }
 }
 
@@ -61,31 +66,50 @@ fn main() {
     println!("{:#?}", csv);
 }
 
-
 #[cfg(test)]
 mod tests {
     extern crate tempdir;
 
+    use super::*;
     use std::fs::File;
     use std::io::prelude::*;
     use tempdir::TempDir;
-    use super::*;
 
-    #[test]
-    fn new_csv_from_file() {
+    fn csv_setup() -> CSV {
         let filename = String::from("test.csv");
         let file_content = b"id,first_name,last_name
         0,jane,doe
         1,john,doe";
         let dir = TempDir::new("testdir").unwrap();
         let file_path = dir.path().join(&filename);
-    
+
         let mut f = File::create(&file_path).unwrap();
-        f.write_all(file_content).expect("Could not write to test file");
+        f.write_all(file_content)
+            .expect("Could not write to test file");
         f.sync_all().expect("Could not sync during test");
 
         let csv = CSV::new_from_file(String::from(file_path.to_str().unwrap()));
-        assert_eq!(csv.headers, ["id","first_name","last_name"]);
         dir.close().expect("Failed to close test dir");
+        csv
+    }
+
+    #[test]
+    fn new_csv_from_file() {
+        let csv = csv_setup();
+        assert_eq!(csv.headers, ["id", "first_name", "last_name"]);
+    }
+
+    #[test]
+    fn search_key_value() {
+        let csv = csv_setup();
+        let res = csv.kv_in("first_name", "jane");
+        assert_eq!(res.unwrap()[0].get("first_name").unwrap(), &String::from("jane"));
+    }
+
+    #[test]
+    fn fail_key_value() {
+        let csv = csv_setup();
+        let res = csv.kv_in("first_name", "steve");
+        assert_eq!(res, None);
     }
 }
